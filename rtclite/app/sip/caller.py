@@ -357,11 +357,16 @@ class Stacks(object):
         return obj.username and obj.password and True or False
 
     def send(self, data, addr, stack):
+        print('sending %r=>%r on type %s\n%s', stack.sock.getsockname(), addr, stack.transport.type, data)
         logger.debug('sending %r=>%r on type %s\n%s', stack.sock.getsockname(), addr, stack.transport.type, data)
         if stack.sock:
             try:
                 if self.options.use_lf: data = re.sub(r'\r\n', '\n', data)
-                if stack.transport.type == Stacks.UDP: stack.sock.sendto(data, addr)
+                print(type(data))
+                print(type(addr))
+                print(data)
+                print(addr)
+                if stack.transport.type == Stacks.UDP: stack.sock.sendto(data.encode(), addr)
                 elif addr in self._conn: self._conn[addr].sendall(data)
                 elif self.allow_outbound:
                     conn = self._conn[addr] = socket.socket(type=socket.SOCK_STREAM)
