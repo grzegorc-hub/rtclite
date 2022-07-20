@@ -317,7 +317,7 @@ class Message(object):
         '''Return iterator to iterate over all Header objects.'''
         h = list()
         for n in filter(lambda x: not x.startswith('_') and x not in Message._keywords, self.__dict__):
-            h += filter(lambda x: isinstance(x, Header), self[n] if isinstance(self[n], list) else [self[n]])
+            h += list(filter(lambda x: isinstance(x, Header), self[n] if isinstance(self[n], list) else [self[n]]))
         return iter(h)
 
     def first(self, name):
@@ -327,14 +327,10 @@ class Message(object):
 
     def all(self, *args):
         '''Return list of the Header object (or empty list) for all the header names in args.'''
-        args = [x.lower() for x in args]
+        args = map(lambda x: x.lower(), args)
         h = list()
-        for n in [x for x in self.__dict__ if x in args and not x.startswith('_') and x not in Message._keywords]:
-            if isinstance(x, Header):
-                arr = [self[n]]
-            elif isinstance(self[n],list):
-                arr = self[n]
-            h += [x for x in arr]
+        for n in filter(lambda x: x in args and not x.startswith('_') and x not in Message._keywords, self.__dict__):
+            h += list(filter(lambda x: isinstance(x, Header), self[n] if isinstance(self[n],list) else [self[n]]))
         return h
 
     def insert(self, header, append=False):
