@@ -65,6 +65,8 @@ class Header(object):
         self.value = self._parse(value.strip(), self.name and self.name.lower() or None)
 
     def _parse(self, value, name):
+        print(f'{value=}')
+        print(f'{name=}')
         '''Parse a header string value for the given header name.'''
         if name in _address: # address header
             addr = Address(); addr.mustQuote = True
@@ -77,6 +79,7 @@ class Header(object):
 #                    self.__dict__[n.lower().strip()] = v.strip()
         elif name not in _comma and name not in _unstructured: # standard
             value, sep, rest = value.partition(';')
+            print(f'value={value}, sep={sep}, rest={rest}')
             if rest:
                 for k, v in self.parseParams(rest): self.__dict__[k] = v
 #            for n,sep,v in map(lambda x: x.partition('='), rest.split(';') if rest else []):
@@ -132,7 +135,7 @@ class Header(object):
                     yield (n, v)
         except:
             logger.exception('error parsing parameters')
-        raise StopIteration(None)
+        return
 
 
     def __str__(self):
@@ -319,12 +322,8 @@ class Message(object):
     def __iter__(self):
         '''Return iterator to iterate over all Header objects.'''
         h = list()
-        for n in [x for x in self.__dict__ if not x.startswith('_') and x not in Message._keywords]:
-            if isinstance(x, Header):
-                arr = [self[n]]
-            elif isinstance(self[n],list):
-                arr = self[n]
-            h += [x for x in arr]
+        for n in filter(lambda x: not x.startswith('_') and x not in Message._keywords, self.__dict__):
+            h += filter(lambda x: isinstance(x, Header), self[n] if isinstance(self[n], list) else [self[n]])
         return iter(h)
 
     def first(self, name):
@@ -736,7 +735,7 @@ class Transaction(object):
         or using [To, From, Call-ID, CSeq-number(int)] and server (Boolean).'''
         To, From, CallId, CSeq = (request.To.value, request.From.value, request['Call-ID'].value, request.CSeq.number) if isinstance(request, Message) else (request[0], request[1], request[2], request[3])
         data = str(To).lower() + '|' + str(From).lower() + '|' + str(CallId) + '|' + str(CSeq) + '|' + str(server)
-        return 'z9hG4bK' + str(urlsafe_b64encode(md5(data).digest())).replace('=','.')
+        return 'z9hG4bK' + str(urlsafe_b64encode(md5(data.encode('utf-8')).digest())).replace('=','.')
 
     @staticmethod
     def createProxyBranch(request, server):
