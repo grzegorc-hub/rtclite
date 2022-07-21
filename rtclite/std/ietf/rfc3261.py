@@ -15,7 +15,7 @@ from .rfc2617 import createAuthorization
 from socket import gethostbyname # TODO: should replace with getifaddr, SRV, NAPTR or similar
 
 logger = logging.getLogger('rfc3261')
-logger.setLevel(logging.DEBUG)
+#logger.setLevel(logging.DEBUG)
 
 logging.root.setLevel(logging.NOTSET)
 logging.basicConfig(level=logging.NOTSET)
@@ -249,7 +249,7 @@ class Message(object):
         # 8. Content-Length if present must match the length of body.
         # 9. mandatory headers are To, From, Call-ID and CSeq.
         # 10. syntax for top Via header and fields: ttl, maddr, received, branch.
-        value = value.decode()
+        value = value.decode() if not isinstance(value, str) else value
         indexCRLFCRLF, indexLFLF = value.find('\r\n\r\n'), value.find('\n\n')
         # print("=====================MOJE======================")
         # print(indexCRLFCRLF)
@@ -328,7 +328,7 @@ class Message(object):
 
     def all(self, *args):
         '''Return list of the Header object (or empty list) for all the header names in args.'''
-        args = map(lambda x: x.lower(), args)
+        args = list(map(lambda x: x.lower(), args))
         h = list()
         for n in filter(lambda x: x in args and not x.startswith('_') and x not in Message._keywords, self.__dict__):
             h += list(filter(lambda x: isinstance(x, Header), self[n] if isinstance(self[n],list) else [self[n]]))
@@ -732,7 +732,7 @@ class Transaction(object):
     def createProxyBranch(request, server):
         '''Create branch property from the request, which will get proxied in a new client branch.'''
         via = request.first('Via')
-        if via and 'branch' in via: return 'z9hG4bK'+ str(urlsafe_b64encode(md5(via.branch).digest())).replace('=','.')
+        if via and 'branch' in via: return 'z9hG4bK'+ str(urlsafe_b64encode(md5(via.branch.encode('utf-8')).digest())).replace('=','.')
         else: return Transaction.createBranch(request, server)
 
     @staticmethod

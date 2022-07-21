@@ -149,7 +149,7 @@ except ImportError: sr = None
 
 
 logger = logging.getLogger('caller')
-logger.setLevel(logging.DEBUG)
+#logger.setLevel(logging.DEBUG)
 
 logging.root.setLevel(logging.NOTSET)
 logging.basicConfig(level=logging.NOTSET)
