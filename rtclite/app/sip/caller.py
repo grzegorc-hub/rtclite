@@ -149,6 +149,10 @@ except ImportError: sr = None
 
 
 logger = logging.getLogger('caller')
+logger.setLevel(logging.DEBUG)
+
+logging.root.setLevel(logging.NOTSET)
+logging.basicConfig(level=logging.NOTSET)
 
 default_ext_ip, default_domain = getlocaladdr()[0], socket.gethostname()
 try: default_login = os.getlogin()
@@ -357,16 +361,11 @@ class Stacks(object):
         return obj.username and obj.password and True or False
 
     def send(self, data, addr, stack):
-        print('sending %r=>%r on type %s\n%s', stack.sock.getsockname(), addr, stack.transport.type, data)
         logger.debug('sending %r=>%r on type %s\n%s', stack.sock.getsockname(), addr, stack.transport.type, data)
         if stack.sock:
             try:
                 if self.options.use_lf: data = re.sub(r'\r\n', '\n', data)
-                print(type(data))
-                print(type(addr))
-                print(data)
-                print(addr)
-                if stack.transport.type == Stacks.UDP: stack.sock.sendto(data.encode(), addr)
+                if stack.transport.type == Stacks.UDP: stack.sock.sendto(data.encode('utf-8'), addr)
                 elif addr in self._conn: self._conn[addr].sendall(data)
                 elif self.allow_outbound:
                     conn = self._conn[addr] = socket.socket(type=socket.SOCK_STREAM)

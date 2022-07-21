@@ -15,6 +15,10 @@ from .rfc2617 import createAuthorization
 from socket import gethostbyname # TODO: should replace with getifaddr, SRV, NAPTR or similar
 
 logger = logging.getLogger('rfc3261')
+logger.setLevel(logging.DEBUG)
+
+logging.root.setLevel(logging.NOTSET)
+logging.basicConfig(level=logging.NOTSET)
 
 #----------------------- Header and Message -------------------------------
 
@@ -65,8 +69,6 @@ class Header(object):
         self.value = self._parse(value.strip(), self.name and self.name.lower() or None)
 
     def _parse(self, value, name):
-        print(f'{value=}')
-        print(f'{name=}')
         '''Parse a header string value for the given header name.'''
         if name in _address: # address header
             addr = Address(); addr.mustQuote = True
@@ -79,7 +81,6 @@ class Header(object):
 #                    self.__dict__[n.lower().strip()] = v.strip()
         elif name not in _comma and name not in _unstructured: # standard
             value, sep, rest = value.partition(';')
-            print(f'value={value}, sep={sep}, rest={rest}')
             if rest:
                 for k, v in self.parseParams(rest): self.__dict__[k] = v
 #            for n,sep,v in map(lambda x: x.partition('='), rest.split(';') if rest else []):
